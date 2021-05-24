@@ -35,27 +35,7 @@ int main() {
     int userInput;
     int menuInput;
     unsigned int delay = 1000;
-
-/* Start code block from https://stackoverflow.com/questions/9547868/is-there-a-way-to-get-user-input-without-pressing-the-enter-key
-    I couldn't figure out how to do the getch() functionality in Mac as it doesn't work the same as on Windows So i used the code below
-    to allow me to replicate the functionality */
-// ------------------------------------------------------------------------
-    struct termios old_tio, new_tio;
-    unsigned char c;
-
-    /* get the terminal settings for stdin */
-    tcgetattr(STDIN_FILENO,&old_tio);
-
-    /* we want to keep the old setting to restore them a the end */
-    new_tio=old_tio;
-
-    /* disable canonical mode (buffered i/o) and local echo */
-    new_tio.c_lflag &=(~ICANON & ~ECHO);
-
-    /* set the new settings immediately */
-    tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
-
-// ------------------------- END COPIED CODE BLOCK ---------------------------
+    cbreak();
 
     // Initialize time to current time
     GetCurrentTime(hours, minutes, seconds);
@@ -70,7 +50,7 @@ int main() {
         DrawTime(hours, minutes, seconds);
 
         // Get user keystrokes
-        userInput = getchar();
+        userInput = getch();
 
         // If user entered a keystroke then do the menu
         if (userInput) {
@@ -85,7 +65,10 @@ int main() {
                     break;
                 case 3:
                     UpdateSeconds(hours, minutes, seconds);
+                    break;
+            
             }
+            userInput = '0';
         }
 
         // Wait 1 second
@@ -95,9 +78,6 @@ int main() {
         UpdateSeconds(hours, minutes, seconds);
 
     } while (menuInput != 4);
-
-    /* restore the former settings */
-    tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
 
     return 0;
 
@@ -135,6 +115,8 @@ void GetCurrentTime(int &hours, int &minutes, int &seconds) {
 }
 
 void UpdateSeconds(int &hours, int &minutes, int &seconds) {
+    // Adds one second to the current time.  Updates minutes if necessary
+
     if (seconds == 59) {
         seconds = 0;
         UpdateMinutes(hours, minutes, seconds);
@@ -143,6 +125,7 @@ void UpdateSeconds(int &hours, int &minutes, int &seconds) {
     }
 }
 void UpdateMinutes(int &hours, int &minutes, int &seconds) {
+    // Adds one minute to current time.  Updates hours if necessary
     if (minutes == 59) {
         minutes = 0;
         UpdateHours(hours, minutes, seconds);
@@ -151,6 +134,7 @@ void UpdateMinutes(int &hours, int &minutes, int &seconds) {
     }
 }
 void UpdateHours(int &hours, int &minutes, int &seconds) {
+    // Adds one hour to current time.
     if (hours == 23) {
         hours = 0;
     } else {
@@ -159,6 +143,7 @@ void UpdateHours(int &hours, int &minutes, int &seconds) {
 }
 
 int DoMenu() {
+    // Prints the menu and handles menu input.
     int userInput = 0;
 
     cout << "**************************" << endl;
@@ -168,13 +153,13 @@ int DoMenu() {
     cout << "* 4 - Exit Program       *" << endl;
     cout << "**************************" << endl;
 
-
+    // Check to see if the entered number is between 1 and 4 and print an error message if it is not.
     while (userInput < 1 || userInput > 4) {
         cin >> userInput;
         if (userInput < 1 || userInput > 4) {
             cout << "Please enter valid input." << endl;
         }
     }
-    cin.sync();
+    fflush(stdin);
     return userInput;
 }
