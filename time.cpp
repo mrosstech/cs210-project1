@@ -20,7 +20,7 @@ void UpdateSeconds(int &hours, int &minutes, int &seconds);
 void UpdateMinutes(int &hours, int &minutes, int &seconds);
 void UpdateHours(int &hours, int &minutes, int &seconds);
 
-int GetCurrentTime(int &hours, int &minutes, int &seconds);
+void GetCurrentTime(int &hours, int &minutes, int &seconds);
 
 
 using namespace std;
@@ -31,8 +31,8 @@ int main() {
     int seconds = 0;
     int minutes = 0;
     int hours = 0;
-    char userInput;
-    char menuInput;
+    int userInput;
+    int menuInput;
     unsigned int delay = 1000;
     // Initialize time to current time
     GetCurrentTime(hours, minutes, seconds);
@@ -49,7 +49,7 @@ int main() {
         userInput = getch();
 
         // If user entered a keystroke then do the menu
-        if (!isblank(userInput)) {
+        if (userInput) {
             menuInput = DoMenu();
 
             switch (menuInput) {
@@ -77,22 +77,24 @@ int main() {
 }
 
 void DrawTime(int hours, int minutes, int seconds) {
-    int th_hours = hours - 12;
+    int th_hours = hours;
     int th_minutes = minutes;
     int th_seconds = seconds;
 
-    if (th_hours = 0) {
-        th_hours = 12;
+    if (th_hours == 0) {
+        th_hours = 1;
+    } else if (th_hours > 12) {
+        th_hours -= 12;
     }
 
     cout << "**************************    **************************\n";
     cout << "*      12-Hour Clock     *    *      24-Hour Clock     *\n";
-    cout << setfill('0') << setw(2) << "*      " << th_hours << ":" << th_minutes << ":" << th_seconds << "       *    ";
-    cout << setfill('0') << setw(2) << "*      " << hours << ":" << minutes << ":" << seconds << "       *\n";
-    cout << "**************************" << endl;
+    cout << "*      " << setw(2) << setfill('0') << th_hours << ":" << setw(2) << setfill('0') << th_minutes << ":" << setw(2) << setfill('0') << th_seconds << "          *    ";
+    cout << "*      " << setfill('0') << setw(2) << hours << ":" << setfill('0') << setw(2) << minutes << ":" << setfill('0') << setw(2) << seconds << "          *\n";
+    cout << "**************************    **************************\n";
 }
 
-int GetCurrentTime(int &hours, int &minutes, int &seconds) {
+void GetCurrentTime(int &hours, int &minutes, int &seconds) {
     // Get the current time in seconds since 1970
     const time_t now = time(0);
     
@@ -145,4 +147,5 @@ int DoMenu() {
             cout << "Please enter valid input." << endl;
         }
     }
+    return userInput;
 }
