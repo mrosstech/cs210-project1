@@ -11,9 +11,10 @@
 #include <iomanip>
 #include <cctype>
 #include <cstring>
+#include <termios.h>
+
 
 int DoMenu();
-char GetInput();
 
 void DrawTime(int hours, int minutes, int seconds);
 void UpdateSeconds(int &hours, int &minutes, int &seconds);
@@ -34,11 +35,34 @@ int main() {
     int userInput;
     int menuInput;
     unsigned int delay = 1000;
+
+/* Start code block from https://stackoverflow.com/questions/9547868/is-there-a-way-to-get-user-input-without-pressing-the-enter-key
+    I couldn't figure out how to do the getch() functionality in Mac as it doesn't work the same as on Windows So i used the code below
+    to allow me to replicate the functionality */
+// ------------------------------------------------------------------------
+    struct termios old_tio, new_tio;
+    unsigned char c;
+
+    /* get the terminal settings for stdin */
+    tcgetattr(STDIN_FILENO,&old_tio);
+
+    /* we want to keep the old setting to restore them a the end */
+    new_tio=old_tio;
+
+    /* disable canonical mode (buffered i/o) and local echo */
+    new_tio.c_lflag &=(~ICANON & ~ECHO);
+
+    /* set the new settings immediately */
+    tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
+
+// ------------------------- END COPIED CODE BLOCK ---------------------------
+
     // Initialize time to current time
     GetCurrentTime(hours, minutes, seconds);
 
     // Main code loop
     do {
+
         // Clear Screen
         system("clear");
         
@@ -46,7 +70,7 @@ int main() {
         DrawTime(hours, minutes, seconds);
 
         // Get user keystrokes
-        userInput = getch();
+        userInput = getchar();
 
         // If user entered a keystroke then do the menu
         if (userInput) {
@@ -72,6 +96,9 @@ int main() {
 
     } while (menuInput != 4);
 
+    /* restore the former settings */
+    tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
+
     return 0;
 
 }
@@ -82,7 +109,7 @@ void DrawTime(int hours, int minutes, int seconds) {
     int th_seconds = seconds;
 
     if (th_hours == 0) {
-        th_hours = 1;
+        th_hours = 12;
     } else if (th_hours > 12) {
         th_hours -= 12;
     }
@@ -124,7 +151,7 @@ void UpdateMinutes(int &hours, int &minutes, int &seconds) {
     }
 }
 void UpdateHours(int &hours, int &minutes, int &seconds) {
-    if (hours == 24) {
+    if (hours == 23) {
         hours = 0;
     } else {
         hours += 1;
@@ -141,11 +168,13 @@ int DoMenu() {
     cout << "* 4 - Exit Program       *" << endl;
     cout << "**************************" << endl;
 
-    while (userInput < 1 && userInput > 4) {
+
+    while (userInput < 1 || userInput > 4) {
         cin >> userInput;
         if (userInput < 1 || userInput > 4) {
             cout << "Please enter valid input." << endl;
         }
     }
+    cin.sync();
     return userInput;
 }
